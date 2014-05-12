@@ -1,0 +1,34 @@
+{
+  "name": "messenger-client",
+  "version": "0.0.0",
+  "description": "Keybase messenger client library",
+  "main": "lib/main.js",
+  "dependencies": {
+    "iced-coffee-script": "^1.7.1-b",
+    "iced-error": "0.0.8",
+    "iced-utils": "^0.1.12",
+    "purepack": "~1.0.0",
+    "triplesec": "^3.0.10"
+  },
+  "devDependencies": {
+    "iced-test": "0.0.15",
+    "request": "^2.34.0"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/keybase/messenger-client"
+  },
+  "keywords": [
+    "secure",
+    "messaging"
+  ],
+  "author": "Maxwell Krohn",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/keybase/messenger-client/issues"
+  },
+  "homepage": "https://github.com/keybase/messenger-client"
+}
