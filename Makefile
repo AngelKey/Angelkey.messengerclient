@@ -18,7 +18,7 @@ $(BUILD_STAMP): \
 	lib/err.js \
 	lib/main.js \
 	lib/stubs.js \
-	lib/thread.js
+	lib/session.js
 	date > $@
 
 clean:
