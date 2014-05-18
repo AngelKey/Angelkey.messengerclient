@@ -12,9 +12,13 @@ lib/%.js: src/%.iced
 	$(ICED) -I node -c -o `dirname $@` $<
 
 $(BUILD_STAMP): \
+	lib/base.js \
 	lib/client.js \
+	lib/config.js \
+	lib/err.js \
 	lib/main.js \
-	lib/stubs.js
+	lib/stubs.js \
+	lib/thread.js
 	date > $@
 
 clean:

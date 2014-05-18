@@ -8,7 +8,9 @@
     "iced-error": "0.0.8",
     "iced-utils": "^0.1.12",
     "purepack": "~1.0.0",
-    "triplesec": "^3.0.10"
+    "triplesec": "^3.0.10",
+    "keybase-bjson-core": "0.0.1",
+    "keybase-bjson-client": "0.0.2"
   },
   "devDependencies": {
     "iced-test": "0.0.15",

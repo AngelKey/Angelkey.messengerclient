@@ -1,4 +1,4 @@
 messenger-client
 ================
 
-baresbones of the messenger client
+barebones of the messenger client
