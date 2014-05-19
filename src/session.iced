@@ -52,7 +52,7 @@ class SessionClient extends Base
 
   #-------------------------
 
-  init_session : (cb) ->
+  establish_session : (cb) ->
     esc = make_esc cb, "SessionClient::init_thread"
 
     log.debug "+ init_session"
@@ -86,7 +86,7 @@ class SessionClient extends Base
     log.debug "| Response from session/init -> #{util.inspect body}"
     log.debug "- init_session"
 
-    cb null
+    cb null, body
 
 #=============================================================================
 
@@ -95,8 +95,8 @@ test = () ->
   {Config} = require './config'
   log.package().env().set_level log.package().DEBUG
   cfg = new Config { port : 3021 }
-  thread = new SessionClient { cfg }
-  await thread.init_session defer err
+  sc = new SessionClient { cfg }
+  await sc.establish_session defer err
   if err? then throw err
   process.exit 0
 

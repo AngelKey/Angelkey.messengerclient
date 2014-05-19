@@ -1,4 +1,6 @@
 
+
+
 #=============================================================================
 
 exports.Client = class Client
@@ -9,7 +11,7 @@ exports.Client = class Client
 
   #------------------------------
 
-  call_thread_init : (arg, cb) ->
+  init_thread : (arg, cb) ->
 
 
 
