@@ -10,7 +10,8 @@
     "purepack": "~1.0.0",
     "triplesec": "^3.0.11",
     "keybase-bjson-core": "0.0.2",
-    "keybase-bjson-client": "0.0.3"
+    "keybase-bjson-client": "0.0.3",
+    "iced-logger": "0.0.3"
   },
   "devDependencies": {
     "iced-test": "0.0.15",

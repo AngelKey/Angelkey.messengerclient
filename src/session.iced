@@ -5,6 +5,8 @@
 tsec = require 'triplesec'
 {WordArray,scrypt} = tsec
 {buffer_cmp_ule} = tsec.util
+log = require 'iced-logger'
+util = require 'util'
 
 #=============================================================================
 
@@ -18,6 +20,7 @@ class SessionClient extends Base
 
   _solve_challenge : ({challenge}, cb) ->
     esc = make_esc cb, "SessionClient::solve_challenge"
+    log.debug "+ Solving session challenge"
 
     key = WordArray.from_buffer challenge.token[1]
     {N,r,p,bytes} = challenge.params
@@ -25,12 +28,16 @@ class SessionClient extends Base
 
     target = challenge.params.less_than
 
+    log.debug "| Target is -> #{target.toString('hex')} (with #{bytes} bytes)"
+
     res = null
+    i = 0
 
     # Make a lot of numbers
     for i in [0...1000000]
       res = new Buffer(4)
       res.writeUInt32BE(i, 0)
+      log.debug "| attempt #{i}" if (i % 1024 is 0) and i > 0
       args.salt = WordArray.from_buffer res
       args.key = key.clone()
       await scrypt args, defer out
@@ -40,12 +47,15 @@ class SessionClient extends Base
     unless res?
       err = new Error "failed to solve the puzzle"
 
+    log.debug "- Solved session challenge @#{i}"
     cb err, res
 
   #-------------------------
 
   init_session : (cb) ->
     esc = make_esc cb, "SessionClient::init_thread"
+
+    log.debug "+ init_session"
 
     args = 
       endpoint : "session/challenge"
@@ -73,7 +83,8 @@ class SessionClient extends Base
 
     await @request { endpoint : "session/init" , method : "POST", data }, esc defer res, body
 
-    console.log body
+    log.debug "| Response from session/init -> #{util.inspect body}"
+    log.debug "- init_session"
 
     cb null
 
@@ -82,6 +93,7 @@ class SessionClient extends Base
 
 test = () ->
   {Config} = require './config'
+  log.package().env().set_level log.package().DEBUG
   cfg = new Config { port : 3021 }
   thread = new SessionClient { cfg }
   await thread.init_session defer err
