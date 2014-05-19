@@ -2,6 +2,7 @@
 {request} = require 'keybase-bjson-client'
 {E} = require './err'
 {check_template} = require 'keybase-bjson-core'
+util = require 'util'
 
 #=============================================================================
 
