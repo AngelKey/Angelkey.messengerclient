@@ -8,6 +8,7 @@ exports.E = E = ie.make_errors
   APPLICATION : "Application error"
   CHALLENGE : "challenge error"
   REPLY_BODY : "wrong format in reply"
+  KEY_NOT_FOUND : "key not found"
 
 #================================================
 

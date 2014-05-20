@@ -81,12 +81,19 @@ class SessionClient extends Base
 
     data = { challenge : { token : json.body.challenge.token, solution } }
 
-    await @request { endpoint : "session/init" , method : "POST", data }, esc defer res, body
+    args = 
+      endpoint : "session/init"
+      method : "POST"
+      data : data
+      template :
+        session_id : checkers.buffer(4)
+
+    await @request args, esc defer res, body
 
     log.debug "| Response from session/init -> #{util.inspect body}"
     log.debug "- init_session"
 
-    cb null, body
+    cb null, body.session_id
 
 #=============================================================================
 
