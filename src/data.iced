@@ -83,7 +83,7 @@ exports.UserSet = class UserSet
 
 exports.Thread = class Thread
 
-  constructor : ({@cfg, @user_set}) ->
+  constructor : ({@cfg, @user_set, @etime}) ->
     @k_s = null
     @k_m = null
     @i = null
@@ -112,7 +112,7 @@ exports.Thread = class Thread
   #---------------------
 
   gen_init_msg : (cb) ->
-    msg = { @i, users : [] }
+    msg = { @i, users : [], @etime }
     esc = make_esc cb, "gen_init_msg"
     await @gen_keys defer()
     for u in @user_set.users()
