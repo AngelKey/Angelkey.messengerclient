@@ -93,7 +93,7 @@ exports.SessionClient = class SessionClient extends Base
     log.debug "| Response from session/init -> #{util.inspect body}"
     log.debug "- init_session"
 
-    cb null, body.session_id
+    cb null, body.body.session_id
 
 #=============================================================================
 

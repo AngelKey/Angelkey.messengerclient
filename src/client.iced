@@ -26,6 +26,7 @@ exports.Client = class Client extends Base
     await scli.establish_session esc defer session_id
     await thread.gen_init_msg esc defer msg
     msg.session_id = session_id
+    console.log msg
     args = 
       endpoint : "thread/init"
       method : "POST"
@@ -44,7 +45,7 @@ test = () ->
   cfg = new Config { port : 3021 }
   cli = new Client { cfg }
   user_set = new UserSet { users : [ chris, max] }
-  thread = new Thread { cfg, user_set }
+  thread = new Thread { cfg, user_set, etime : 0 }
   await cli.init_thread { thread }, defer err
   rc = 0  
   if err?

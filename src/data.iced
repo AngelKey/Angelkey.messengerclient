@@ -140,9 +140,9 @@ exports.Thread = class Thread
   #---------------------
 
   gen_init_msg : (cb) ->
-    msg = { @i, users : [], @etime }
     esc = make_esc cb, "gen_init_msg"
     await @init esc defer()
+    msg = { @i, users : [], @etime }
     for u in @user_set.users
       payload = @thread_init_payload()
       await u.gen_init_msg { @cfg, payload }, esc defer ctext
