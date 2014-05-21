@@ -2,7 +2,7 @@
 tsec   = require 'triplesec'
 {prng} = tsec
 {buffer_cmp_ule} = tsec.util
-{KeyManager} = require 'kbpgp'
+{burn,KeyManager} = require 'kbpgp'
 {athrow} = require('iced-utils').util
 {E} = require './err'
 {make_esc} = require 'iced-error'
@@ -47,10 +47,10 @@ exports.User = class User
   gen_init_msg : ({cfg,payload}, cb) ->
     payload.t = @t
     # Encode JSON object to buffer based on configuration options
-    msg = @cfg.encode_to_buffer(payload)
+    msg = cfg.encode_to_buffer(payload)
     err = null
 
-    unless (encryption_key = km.find_crypt_pgp_key())?
+    unless (encryption_key = @km.find_crypt_pgp_key())?
       err = new Error E.KeyNotFoundError "no enc key for user #{display_name}"
     else
       await burn { encryption_key, msg, opts : { hide : true } }, defer err, ctext

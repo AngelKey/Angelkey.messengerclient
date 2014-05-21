@@ -48,7 +48,7 @@ test = () ->
   await cli.init_thread { thread }, defer err
   rc = 0  
   if err?
-    log.error err
+    log.error err.toString()
     rc = -2
   process.exit rc
 

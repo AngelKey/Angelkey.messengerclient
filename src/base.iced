@@ -32,8 +32,10 @@ exports.Base = class Base
       err.code = res.statusCode
     else if not body.status?.name?
       err = new E.ApplicationError "No body status returned; wanted 'OK'"
-    else if not (n = body.status.name) in app_status
-      err = new E.ApplicationError "Bad application status: #{n}"
+    else if not ((n = body.status.name) in app_status)
+      msg = "Bad application status: #{n}"
+      if (d = body.status?.desc)? then msg += " (#{d})"
+      err = new E.ApplicationError msg
       err.status = body.status
 
     if not err? and args.template?
