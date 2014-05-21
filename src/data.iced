@@ -1,14 +1,15 @@
 
 tsec   = require 'triplesec'
 {prng} = tsec
-{buffer_cmp_ule} = require tsec.util
+{buffer_cmp_ule} = tsec.util
 {KeyManager} = require 'kbpgp'
 {athrow} = require('iced-utils').util
 {E} = require './err'
+{make_esc} = require 'iced-error'
 
 #=============================================================================
 
-rando : (n, cb) ->
+rando = (n, cb) ->
   await prng.generate n, defer wa
   cb wa.to_buffer()
 
@@ -20,6 +21,15 @@ exports.User = class User
   constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me}) ->
     @i = null
     @t = null
+    @km = null
+
+  #---------------------
+
+  init : (cb) ->
+    await KeyManager.import_from_armored_pgp { raw : @public_key }, defer err, @km
+    if not err? and not @fingerprint?
+      @fingerprint = @km.get_pgp_fingerprint()
+    cb err
 
   #---------------------
 
@@ -38,19 +48,18 @@ exports.User = class User
     payload.t = @t
     # Encode JSON object to buffer based on configuration options
     msg = @cfg.encode_to_buffer(payload)
+    err = null
 
-    esc = make_esc cb, "User::gen_init_msg"
-
-    await KeyManager.import_from_armored_pgp { raw : @public_key }, esc defer km
     unless (encryption_key = km.find_crypt_pgp_key())?
-      athrow (new Error E.KeyNotFoundError "no enc key for user #{display_name}"), esc defer()
-    await burn { encryption_key, msg, opts : { hide : true } }, esc defer, ctext
+      err = new Error E.KeyNotFoundError "no enc key for user #{display_name}"
+    else
+      await burn { encryption_key, msg, opts : { hide : true } }, defer err, ctext
 
-    # The final message sent to the server sends the write token in the clear
-    # so the server can authenticate writes from the user.
-    msg = { @t, ctext }
+      # The final message sent to the server sends the write token in the clear
+      # so the server can authenticate writes from the user.
+      msg = { @t, ctext }
 
-    cb null, msg
+    cb err, msg
 
 #=============================================================================
 
@@ -58,11 +67,19 @@ exports.User = class User
 exports.UserSet = class UserSet
 
   constructor : ( {@users}) -> 
-    @sort()
 
   #---------------------
 
   sort : () -> @users.sort (a,b) -> buffer_cmp_ule a.fingerprint, b.fingerprint
+
+  #---------------------
+
+  init : (cb) ->
+    esc = make_esc cb, "UserSet::init"
+    for u in @users
+      await u.init esc defer()
+    @sort()
+    cb null
 
   #---------------------
 
@@ -87,6 +104,17 @@ exports.Thread = class Thread
     @k_s = null
     @k_m = null
     @i = null
+    @_init_flag = false
+
+  #---------------------
+
+  init : (cb) ->
+    esc = make_esc cb, "Thread::init"
+    unless @_init_flag
+      @_init_flag = true
+      await @user_set.init esc defer()
+      await @gen_keys defer()
+    cb null
 
   #---------------------
 
@@ -114,8 +142,8 @@ exports.Thread = class Thread
   gen_init_msg : (cb) ->
     msg = { @i, users : [], @etime }
     esc = make_esc cb, "gen_init_msg"
-    await @gen_keys defer()
-    for u in @user_set.users()
+    await @init esc defer()
+    for u in @user_set.users
       payload = @thread_init_payload()
       await u.gen_init_msg { @cfg, payload }, esc defer ctext
       msg.users.push ctext

@@ -10,7 +10,7 @@ util = require 'util'
 
 #=============================================================================
 
-class SessionClient extends Base
+exports.SessionClient = class SessionClient extends Base
 
   # cfg contains which server to connect to; might be a Tor address?
   constructor : (args) ->
@@ -107,5 +107,4 @@ test = () ->
   if err? then throw err
   process.exit 0
 
-test()
 

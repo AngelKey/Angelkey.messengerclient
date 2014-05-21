@@ -15,6 +15,7 @@ $(BUILD_STAMP): \
 	lib/base.js \
 	lib/client.js \
 	lib/config.js \
+	lib/data.js \
 	lib/err.js \
 	lib/main.js \
 	lib/stubs.js \

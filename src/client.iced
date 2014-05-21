@@ -2,6 +2,10 @@
 {SessionClient} = require './session'
 {make_esc} = require 'iced-error'
 {Base} = require './base'
+{Config} = require './config'
+{UserSet,Thread} = require './data'
+{chris,max} = require '../test/data/users.iced'
+log = require 'iced-logger'
 
 #=============================================================================
 
@@ -35,3 +39,17 @@ exports.Client = class Client extends Base
 
 #=============================================================================
 
+test = () ->
+  log.package().env().set_level log.package().DEBUG
+  cfg = new Config { port : 3021 }
+  cli = new Client { cfg }
+  user_set = new UserSet { users : [ chris, max] }
+  thread = new Thread { cfg, user_set }
+  await cli.init_thread { thread }, defer err
+  rc = 0  
+  if err?
+    log.error err
+    rc = -2
+  process.exit rc
+
+test()
