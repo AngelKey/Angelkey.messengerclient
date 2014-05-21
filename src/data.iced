@@ -46,8 +46,11 @@ exports.User = class User
       athrow (new Error E.KeyNotFoundError "no enc key for user #{display_name}"), esc defer()
     await burn { encryption_key, msg, opts : { hide : true } }, esc defer, ctext
 
-    # All done...
-    cb null, ctext
+    # The final message sent to the server sends the write token in the clear
+    # so the server can authenticate writes from the user.
+    msg = { @t, ctext }
+
+    cb null, msg
 
 #=============================================================================
 
