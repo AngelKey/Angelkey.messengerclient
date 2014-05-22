@@ -10,7 +10,7 @@ idg = require('keybase-messenger-core').id.generators
 
 #=============================================================================
 
-rando = (n, cb) ->
+strong_random = (n, cb) ->
   await prng.generate n, defer wa
   cb wa.to_buffer()
 
@@ -132,8 +132,8 @@ exports.Thread = class Thread
   #---------------------
 
   gen_keys : (cb) ->
-    await rando 32, defer @k_s
-    await rando 32, defer @k_m
+    await strong_random 32, defer @k_s
+    await strong_random 32, defer @k_m
     @i = idg.thread()
     await @user_set.gen_keys defer()
     cb()
