@@ -2,6 +2,7 @@
 {Base} = require './base'
 {make_esc} = require 'iced-error'
 {checkers} = require 'keybase-bjson-core'
+idcheckers = require('keybase-messenger-core').id.checkers
 tsec = require 'triplesec'
 {WordArray,scrypt} = tsec
 {buffer_cmp_ule} = tsec.util
@@ -62,7 +63,7 @@ exports.SessionClient = class SessionClient extends Base
       method : "GET" 
       template: 
         challenge : 
-          token : [ checkers.value(1), checkers.buffer(0,100) ] 
+          token : [ checkers.value(1), idcheckers.sct ]
           params : 
             bytes : checkers.intval(0,64)
             N : checkers.intval(0,(1<<30))
@@ -86,7 +87,7 @@ exports.SessionClient = class SessionClient extends Base
       method : "POST"
       data : data
       template :
-        session_id : checkers.buffer(4)
+        session_id : idcheckers.session
 
     await @request args, esc defer res, body
 
