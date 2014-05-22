@@ -61,7 +61,7 @@ main = (cb) ->
   log.package().env().set_level log.package().DEBUG
   cfg = new Config { port : 3021 }
   cli = new Client { cfg }
-  user_set = new UserSet { users : [ chris, max] }
+  user_set = new UserSet { users : [ chris, max ] }
   thread = new Thread { cfg, user_set, etime : 0 }
   esc = make_esc cb, "test"
   await cli.init_thread { thread }, esc defer()
