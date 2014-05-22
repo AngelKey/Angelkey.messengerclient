@@ -26,7 +26,6 @@ exports.Client = class Client extends Base
     await scli.establish_session esc defer session_id
     await thread.gen_init_msg esc defer msg
     msg.session_id = session_id
-    console.log msg
     args = 
       endpoint : "thread/init"
       method : "POST"
