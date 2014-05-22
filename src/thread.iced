@@ -5,7 +5,7 @@
 {Config} = require './config'
 {UserSet,Thread} = require './data'
 {donnie,chris,max} = require '../test/data/users.iced'
-{Authorizer} = require './authorize'
+{AuthorizeClient} = require './authorize'
 log = require 'iced-logger'
 idg = require('keybase-messenger-core').id.generators
 
@@ -42,9 +42,8 @@ exports.ThreadClient = class ThreadClient extends Base
 
   authorize : (arg, cb) ->
     esc = make_esc cb, "Client::authorized"
-    auth = new Authorizer { @tmp_key_generator, @me, cfg }
-    await auth.gen_authorize_message esc defer msg, @tmp_keys
-
+    auth = new AuthorizeClient { @tmp_key_generator, @me, @cfg }
+    await auth.authorize esc defer msg, @tmp_keys
     cb null
 
   #------------------------------
@@ -77,6 +76,7 @@ main = (cb) ->
   esc = make_esc cb, "test"
   await cli.init_thread {}, esc defer()
   await cli.update_write_token { thread, user : chris }, esc defer()
+  await cli.authorize {}, esc defer()
   cb null
 
 #=============================================================================
