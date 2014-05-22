@@ -6,6 +6,7 @@ tsec   = require 'triplesec'
 {athrow} = require('iced-utils').util
 {E} = require './err'
 {make_esc} = require 'iced-error'
+idg = require('keybase-messenger-core').id.generators
 
 #=============================================================================
 
@@ -34,8 +35,8 @@ exports.User = class User
   #---------------------
 
   gen_keys : (cb) ->
-    await rando 16, defer @i
-    await rando 16, defer @t
+    @i = idg.thread()
+    @t = idg.write_token()
     cb()
 
   #---------------------
@@ -133,7 +134,7 @@ exports.Thread = class Thread
   gen_keys : (cb) ->
     await rando 32, defer @k_s
     await rando 32, defer @k_m
-    await rando 16, defer @i
+    @i = idg.thread()
     await @user_set.gen_keys defer()
     cb()
 
