@@ -6,6 +6,7 @@
 {UserSet,Thread} = require './data'
 {chris,max} = require '../test/data/users.iced'
 log = require 'iced-logger'
+idg = require('keybase-messenger-core').id.generators
 
 #=============================================================================
 
@@ -37,19 +38,41 @@ exports.Client = class Client extends Base
 
   #------------------------------
 
+  update_write_token : ({thread, user}, cb) ->
+    log.debug "+ update write token for #{user.display_name}"
+    msg =
+      i : thread.i
+      user_zid : thread.get_user_zid(user)
+      old_token : user.t
+      new_token : idg.write_token()
+    args = 
+      endpoint : "thread/update_write_token"
+      method : "POST"
+      data : msg
+    await @request args, defer err
+    unless err?
+      user.t = msg.new_token
+    log.debug "- write token update: -> #{err}"
+    cb err
+
 #=============================================================================
 
-test = () ->
+main = (cb) ->
   log.package().env().set_level log.package().DEBUG
   cfg = new Config { port : 3021 }
   cli = new Client { cfg }
   user_set = new UserSet { users : [ chris, max] }
   thread = new Thread { cfg, user_set, etime : 0 }
-  await cli.init_thread { thread }, defer err
-  rc = 0  
-  if err?
-    log.error err.toString()
-    rc = -2
-  process.exit rc
+  esc = make_esc cb, "test"
+  await cli.init_thread { thread }, esc defer()
+  await cli.update_write_token { thread, user : chris }, esc defer()
+  cb null
 
-test()
+#=============================================================================
+
+await main defer err
+rc = 0
+if err?
+  log.error err.toString()
+  rc = 2
+process.exit rc

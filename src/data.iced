@@ -10,6 +10,10 @@ idg = require('keybase-messenger-core').id.generators
 
 #=============================================================================
 
+H = (x) -> x.toString('hex')
+
+#=============================================================================
+
 strong_random = (n, cb) ->
   await prng.generate n, defer wa
   cb wa.to_buffer()
@@ -35,8 +39,8 @@ exports.User = class User
   #---------------------
 
   gen_keys : (cb) ->
-    @i = idg.thread()
-    @t = idg.write_token()
+    @i or= idg.thread()
+    @t or= idg.write_token()
     cb()
 
   #---------------------
@@ -68,6 +72,7 @@ exports.User = class User
 exports.UserSet = class UserSet
 
   constructor : ( {@users}) -> 
+    @user_zids = {}
 
   #---------------------
 
@@ -80,7 +85,13 @@ exports.UserSet = class UserSet
     for u in @users
       await u.init esc defer()
     @sort()
+    for u,pos in @users
+      @user_zids[H(u.fingerprint)] = pos
     cb null
+
+  #---------------------
+
+  get_user_zid: (u) -> @user_zids[H(u.fingerprint)]
 
   #---------------------
 
@@ -120,6 +131,7 @@ exports.Thread = class Thread
   #---------------------
 
   thread_uids : () -> @user_set.thread_uids()
+  get_user_zid : (u) -> @user_set.get_user_zid(u)
 
   #---------------------
 
