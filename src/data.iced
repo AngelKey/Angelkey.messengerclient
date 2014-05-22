@@ -23,7 +23,7 @@ strong_random = (n, cb) ->
 # Things to know about a user
 exports.User = class User
 
-  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me}) ->
+  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me, @private_key}) ->
     @i = null
     @t = null
     @km = null
