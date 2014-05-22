@@ -19,7 +19,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
   #---------
 
   authorize : (cb) ->
-    await @tmp_key_generator defer km
+    await @tmp_key_generator defer err, km
     cb null
 
 
