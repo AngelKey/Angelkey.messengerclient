@@ -52,7 +52,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
       fingerprint : @km.get_pgp_fingerprint()
       expires : unix_time() + @expire_in
     }
-    await burn { msg, signing_key : privkeys.signing }, defer err, @sig
+    await burn { msg, signing_key : @privkeys.signing }, defer err, @sig
     log.debug "- sign"
     cb err
 
@@ -60,7 +60,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
 
   encrypt : (cb) ->
     esc = make_esc cb, "AuthorizeClient::encrypt"
-    log.deubg "+ encrypt"
+    log.debug "+ encrypt"
     await @encrypt_priv esc defer()
     await @encrypt_pub esc defer()
     log.debug "- encrypt"
@@ -89,8 +89,8 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
     await @km.export_pgp_private_to_client {}, esc defer tmpkey
     args = 
       msg : tmpkey
-      encryption_key : privkeys.crypt
-      signing_key : privkeys.signing
+      encryption_key : @privkeys.crypt
+      signing_key    : @privkeys.signing
       hide : true
     await burn args, esc defer @keys.private
     log.debug "- encrypt_priv"

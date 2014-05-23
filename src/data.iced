@@ -61,8 +61,8 @@ exports.User = class User
     keys = {}
     err = if not @private_km? then new Error "No private key manager available"
     else if @private_km.is_pgp_locked() then new Error "Private key is PGP-locked"
-    else if not (@ret.sign = @private_km.find_signing_pgp_key())? then new Error "no signing key"
-    else if not (@ret.crypt = @private_km.find_crypt_pgp_key())? then new Error "no crypt key"
+    else if not (keys.sign = @private_km.find_signing_pgp_key())? then new Error "no signing key"
+    else if not (keys.crypt = @private_km.find_crypt_pgp_key())? then new Error "no crypt key"
     else null
     cb err, keys
 
