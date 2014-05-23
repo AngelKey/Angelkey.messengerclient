@@ -9,7 +9,7 @@ kbmc = require 'keybase-messenger-core'
 idg = kbmc.id.generators
 C = kbmc.const
 {burn,KeyManager} = require 'kbpgp'
-{unix_time} = require 'iced-utils'
+{unix_time} = require('iced-utils').util
 {pack} = require 'purepack'
 
 #=============================================================================
@@ -28,12 +28,19 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
   authorize : (cb) ->
     log.debug "+ AuthorizeClient::authorize"
     esc = make_esc cb, "AuthorizeClient::authorize"
+    await @init esc defer()
     await @generate esc defer()
     await @sign esc defer()
     await @encrypt defer()
     await @send esc defer()
     log.debug "- AuthorizeClient::authorize"
     cb null, @km
+
+  #---------
+
+  init : (cb) ->
+    await @user.get_private_keys defer err, @privkeys
+    cb err
 
   #---------
 
@@ -45,7 +52,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
       fingerprint : @km.get_pgp_fingerprint()
       expires : unix_time() + @expire_in
     }
-    await burn { msg, signing_key : @km }, defer err, @sig
+    await burn { msg, signing_key : privkeys.signing }, defer err, @sig
     log.debug "- sign"
     cb err
 
@@ -80,11 +87,10 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
     esc = make_esc cb, "AuthorizeClient::encrypt_priv"
     log.debug "+ encrypt_priv"
     await @km.export_pgp_private_to_client {}, esc defer tmpkey
-    await @user.get_private_keys esc defer keys
     args = 
       msg : tmpkey
-      encryption_key : keys.crypt
-      signing_key : keys.signing
+      encryption_key : privkeys.crypt
+      signing_key : privkeys.signing
       hide : true
     await burn args, esc defer @keys.private
     log.debug "- encrypt_priv"

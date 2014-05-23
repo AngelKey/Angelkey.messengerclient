@@ -26,8 +26,9 @@ strong_random = (n, cb) ->
 exports.User = class User
 
   # @param {String} public_key The PGP-armored public keys
+  # @param {String} private_key The PGP-armored private key
   # @param {KeyManager} private_km The unlocked private key, suitable for signing
-  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me, @private_km}) ->
+  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me, @private_km, @private_key}) ->
     @i = null
     @t = null
     @km = null
@@ -39,6 +40,12 @@ exports.User = class User
     await KeyManager.import_from_armored_pgp { raw : @public_key }, defer err, @km
     if not err? and not @fingerprint?
       @fingerprint = @km.get_pgp_fingerprint()
+    cb err
+
+  #---------------------
+
+  unlock_private_key : (fn, cb) ->
+    await fn @private_key, defer err, @private_km
     cb err
 
   #---------------------

@@ -24,7 +24,7 @@ exports.Config = class Config
 
   #-----------------------
 
-  session_auth_key_bits : () -> 2048
+  session_auth_key_bits : () -> 1024
   session_auth_key_lifespan : () -> 60*60*24*365*5
 
   #-----------------------

@@ -8,6 +8,7 @@
 {AuthorizeClient} = require './authorize'
 log = require 'iced-logger'
 idg = require('keybase-messenger-core').id.generators
+{KeyManager} = require 'kbpgp'
 
 #=============================================================================
 
@@ -75,6 +76,12 @@ exports.ThreadClient = class ThreadClient extends Base
 
 #=============================================================================
 
+unlocker = (raw, cb) ->
+  esc = make_esc cb, "Unlocker"
+  await KeyManager.import_from_armored_pgp { raw } , esc defer km
+  await km.unlock_pgp { passphrase : '' }, esc defer()
+  cb null, km
+
 main = (cb) ->
   log.package().env().set_level log.package().DEBUG
   cfg = new Config { port : 3021 }
@@ -82,6 +89,7 @@ main = (cb) ->
   thread = new Thread { cfg, user_set, etime : 0 }
   cli = new ThreadClient { cfg, thread, me : donnie }
   esc = make_esc cb, "test"
+  await donnie.unlock_private_key unlocker, esc defer()
   await cli.init_thread {}, esc defer()
   await cli.update_write_token { thread, user : chris }, esc defer()
   await cli.authorize {}, esc defer()
