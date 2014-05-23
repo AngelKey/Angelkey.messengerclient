@@ -15,9 +15,10 @@ exports.ThreadClient = class ThreadClient extends Base
 
   #------------------------------
 
-  constructor : ({cfg, @thread, @tmp_key_generator, @me}) ->
+  constructor : ({cfg, @thread, @me}) ->
     super { cfg }
     @tmp_keys = null
+    @cipher = null
 
   #------------------------------
 
@@ -35,15 +36,22 @@ exports.ThreadClient = class ThreadClient extends Base
       data : msg
     # We don't need any data back out of the post call, only an indication of success
     # or not.
+    @cipher = @thread.get_cipher()
     await @request args, esc defer()
     cb null
 
   #------------------------------
 
-  authorize : (arg, cb) ->
-    esc = make_esc cb, "Client::authorized"
-    auth = new AuthorizeClient { @tmp_key_generator, @me, @cfg }
-    await auth.authorize esc defer msg, @tmp_keys
+  get_authorize_klass : () -> AuthorizeClient
+
+  #------------------------------
+
+  authorize : ({user}, cb) ->
+    user or= @me
+    esc = make_esc cb, "Client::authorize"
+    klass = @get_authorize_klass()
+    auth = new klass { @thread, user, @cfg }
+    await auth.authorize esc defer @tmp_keys
     cb null
 
   #------------------------------

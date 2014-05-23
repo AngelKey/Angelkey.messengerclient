@@ -6,7 +6,9 @@ tsec   = require 'triplesec'
 {athrow} = require('iced-utils').util
 {E} = require './err'
 {make_esc} = require 'iced-error'
-idg = require('keybase-messenger-core').id.generators
+kbmc = require 'keybase-messenger-core'
+idg = kbmc.id.generators
+{Cipher} = kmbc.cipher 
 
 #=============================================================================
 
@@ -23,10 +25,13 @@ strong_random = (n, cb) ->
 # Things to know about a user
 exports.User = class User
 
-  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me, @private_key}) ->
+  # @param {String} public_key The PGP-armored public keys
+  # @param {KeyManager} private_km The unlocked private key, suitable for signing
+  constructor : ({@fingerprint, @display_name, @public_key, @inbox_server, @is_me, @private_km}) ->
     @i = null
     @t = null
     @km = null
+    @zid = null
 
   #---------------------
 
@@ -42,6 +47,15 @@ exports.User = class User
     @i or= idg.thread()
     @t or= idg.write_token()
     cb()
+
+  #---------------------
+
+  get_signing_key : (cb) ->
+    err = if not @private_km? then new Error "No private key manager available"
+    else if @private_km.is_pgp_locked() then new Error "Private key is PGP-locked"
+    else if not (ret = @private_km.find_signing_pgp_key())? then new Error "no signing key"
+    else null
+    cb err, key
 
   #---------------------
 
@@ -87,6 +101,7 @@ exports.UserSet = class UserSet
     @sort()
     for u,pos in @users
       @user_zids[H(u.fingerprint)] = pos
+      u.zid = pos
     cb null
 
   #---------------------
@@ -113,8 +128,8 @@ exports.UserSet = class UserSet
 exports.Thread = class Thread
 
   constructor : ({@cfg, @user_set, @etime}) ->
-    @k_s = null
-    @k_m = null
+    @key = null
+    @cipher = null
     @i = null
     @_init_flag = false
 
@@ -132,6 +147,7 @@ exports.Thread = class Thread
 
   thread_uids : () -> @user_set.thread_uids()
   get_user_zid : (u) -> @user_set.get_user_zid(u)
+  get_cipher : () -> @cipher
 
   #---------------------
 
@@ -144,8 +160,8 @@ exports.Thread = class Thread
   #---------------------
 
   gen_keys : (cb) ->
-    await strong_random 32, defer @k_s
-    await strong_random 32, defer @k_m
+    await Cipher.generate_key defer @key
+    @cipher = new Cipher { @key }
     @i = idg.thread()
     await @user_set.gen_keys defer()
     cb()
