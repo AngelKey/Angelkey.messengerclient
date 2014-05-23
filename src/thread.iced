@@ -17,7 +17,7 @@ exports.ThreadClient = class ThreadClient extends Base
 
   constructor : ({cfg, @thread, @me}) ->
     super { cfg }
-    @tmp_keys = null
+    @thread_auth_km = null
     @cipher = null
 
   #------------------------------
@@ -51,7 +51,7 @@ exports.ThreadClient = class ThreadClient extends Base
     esc = make_esc cb, "Client::authorize"
     klass = @get_authorize_klass()
     auth = new klass { @thread, user, @cfg }
-    await auth.authorize esc defer @tmp_keys
+    await auth.authorize esc defer @thread_auth_km
     cb null
 
   #------------------------------

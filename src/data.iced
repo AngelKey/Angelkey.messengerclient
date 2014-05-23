@@ -3,12 +3,12 @@ tsec   = require 'triplesec'
 {prng} = tsec
 {buffer_cmp_ule} = tsec.util
 {burn,KeyManager} = require 'kbpgp'
-{athrow} = require('iced-utils').util
+{unix_time,athrow} = require('iced-utils').util
 {E} = require './err'
 {make_esc} = require 'iced-error'
 kbmc = require 'keybase-messenger-core'
 idg = kbmc.id.generators
-{Cipher} = kmbc.cipher 
+{Cipher} = kbmc
 
 #=============================================================================
 
@@ -50,12 +50,14 @@ exports.User = class User
 
   #---------------------
 
-  get_signing_key : (cb) ->
+  get_private_keys : (cb) ->
+    keys = {}
     err = if not @private_km? then new Error "No private key manager available"
     else if @private_km.is_pgp_locked() then new Error "Private key is PGP-locked"
-    else if not (ret = @private_km.find_signing_pgp_key())? then new Error "no signing key"
+    else if not (@ret.sign = @private_km.find_signing_pgp_key())? then new Error "no signing key"
+    else if not (@ret.crypt = @private_km.find_crypt_pgp_key())? then new Error "no crypt key"
     else null
-    cb err, key
+    cb err, keys
 
   #---------------------
 
