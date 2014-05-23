@@ -75,7 +75,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
     log.debug "+ encrypt_pub"
     await @km.export_pgp_public {}, esc defer key
     buf = @cfg.encode_to_buffer { key, @sig }
-    await @thread.get_cipher().encrypt buf, esc defer @keys.public
+    await @thread.get_cipher().encrypt buf, defer @keys.public
     log.debug "- encrypt_pub"
     cb null
 
@@ -123,6 +123,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
       data:
         i : @thread.i
         user_zid : @user.zid
+        token : @user.t
         keys : @keys
 
     await @request arg, defer err
