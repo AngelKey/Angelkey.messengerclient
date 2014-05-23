@@ -91,7 +91,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
       msg : tmpkey
       encryption_key : @privkeys.crypt
       signing_key    : @privkeys.signing
-      hide : true
+      opts : hide : true
     await burn args, esc defer @keys.private
     log.debug "- encrypt_priv"
     cb null
@@ -125,6 +125,7 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
         user_zid : @user.zid
         token : @user.t
         keys : @keys
+        sig : @sig
 
     await @request arg, defer err
     log.debug "- send"
