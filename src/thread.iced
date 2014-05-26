@@ -9,6 +9,7 @@
 log = require 'iced-logger'
 idg = require('keybase-messenger-core').id.generators
 {KeyManager} = require 'kbpgp'
+{MessagePoster} = require './post'
 
 #=============================================================================
 
@@ -44,16 +45,16 @@ exports.ThreadClient = class ThreadClient extends Base
   #------------------------------
 
   get_authenticate_klass : () -> AuthenticateClient
+  get_poster_klass : () -> MessagePoster
 
   #------------------------------
 
   authenticate : ({user}, cb) ->
     user or= @me
-    esc = make_esc cb, "Client::authenticate"
     klass = @get_authenticate_klass()
     auth = new klass { @thread, user, @cfg }
-    await auth.authenticate esc defer @thread_auth_km
-    cb null
+    await auth.authenticate defer err, @thread_auth_km
+    cb err
 
   #------------------------------
 
@@ -74,6 +75,15 @@ exports.ThreadClient = class ThreadClient extends Base
     log.debug "- write token update: -> #{err}"
     cb err
 
+  #------------------------------
+
+  post_messge : ({msg, mime_type}, cb) ->
+    args = { from : @me, km : @thread_auth_km, @thread, msg, mime_type }
+    klass = @get_poster_klass()
+    poster = new klass args
+    await poster.post defer err
+    cb err
+
 #=============================================================================
 
 unlocker = (raw, cb) ->
@@ -89,10 +99,12 @@ main = (cb) ->
   thread = new Thread { cfg, user_set, etime : 0 }
   cli = new ThreadClient { cfg, thread, me : donnie }
   esc = make_esc cb, "test"
+  msg = "This feels like my element."
   await donnie.unlock_private_key unlocker, esc defer()
   await cli.init_thread {}, esc defer()
   await cli.update_write_token { thread, user : chris }, esc defer()
   await cli.authenticate {}, esc defer()
+  await cli.post_message { msg }, esc defer()
   cb null
 
 #=============================================================================

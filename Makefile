@@ -19,6 +19,7 @@ $(BUILD_STAMP): \
 	lib/data.js \
 	lib/err.js \
 	lib/main.js \
+	lib/post.js \
 	lib/stubs.js \
 	lib/session.js
 	date > $@
