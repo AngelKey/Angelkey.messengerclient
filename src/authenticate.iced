@@ -14,7 +14,7 @@ C = kbmc.const
 
 #=============================================================================
 
-exports.AuthorizeClient = class AuthorizeClient extends Base
+exports.AuthenticateClient = class AuthenticateClient extends Base
 
   #---------
 
@@ -25,15 +25,15 @@ exports.AuthorizeClient = class AuthorizeClient extends Base
 
   #---------
 
-  authorize : (cb) ->
-    log.debug "+ AuthorizeClient::authorize"
-    esc = make_esc cb, "AuthorizeClient::authorize"
+  authenticate : (cb) ->
+    log.debug "+ AuthenticateClient::authenticate"
+    esc = make_esc cb, "AuthenticateClient::authenticate"
     await @init esc defer()
     await @generate esc defer()
     await @sign esc defer()
     await @encrypt defer()
     await @send esc defer()
-    log.debug "- AuthorizeClient::authorize"
+    log.debug "- AuthenticateClient::authenticate"
     cb null, @km
 
   #---------

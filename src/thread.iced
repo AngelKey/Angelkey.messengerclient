@@ -5,7 +5,7 @@
 {Config} = require './config'
 {UserSet,Thread} = require './data'
 {donnie,chris,max} = require '../test/data/users.iced'
-{AuthorizeClient} = require './authorize'
+{AuthenticateClient} = require './authenticate'
 log = require 'iced-logger'
 idg = require('keybase-messenger-core').id.generators
 {KeyManager} = require 'kbpgp'
@@ -43,16 +43,16 @@ exports.ThreadClient = class ThreadClient extends Base
 
   #------------------------------
 
-  get_authorize_klass : () -> AuthorizeClient
+  get_authenticate_klass : () -> AuthenticateClient
 
   #------------------------------
 
-  authorize : ({user}, cb) ->
+  authenticate : ({user}, cb) ->
     user or= @me
-    esc = make_esc cb, "Client::authorize"
-    klass = @get_authorize_klass()
+    esc = make_esc cb, "Client::authenticate"
+    klass = @get_authenticate_klass()
     auth = new klass { @thread, user, @cfg }
-    await auth.authorize esc defer @thread_auth_km
+    await auth.authenticate esc defer @thread_auth_km
     cb null
 
   #------------------------------
@@ -92,7 +92,7 @@ main = (cb) ->
   await donnie.unlock_private_key unlocker, esc defer()
   await cli.init_thread {}, esc defer()
   await cli.update_write_token { thread, user : chris }, esc defer()
-  await cli.authorize {}, esc defer()
+  await cli.authenticate {}, esc defer()
   cb null
 
 #=============================================================================

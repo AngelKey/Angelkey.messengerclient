@@ -12,7 +12,7 @@ lib/%.js: src/%.iced
 	$(ICED) -I node -c -o `dirname $@` $<
 
 $(BUILD_STAMP): \
-	lib/authorize.js \
+	lib/authenticate.js \
 	lib/base.js \
 	lib/thread.js \
 	lib/config.js \
