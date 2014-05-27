@@ -9,7 +9,7 @@
 log = require 'iced-logger'
 idg = require('keybase-messenger-core').id.generators
 {KeyManager} = require 'kbpgp'
-{MessagePoster} = require './post'
+{PostMessageClient} = require './post'
 
 #=============================================================================
 
@@ -21,6 +21,7 @@ exports.ThreadClient = class ThreadClient extends Base
     super { cfg }
     @thread_auth_km = null
     @cipher = null
+    @max_msg_zid = 0 # the maximum msg zid we got on this thread
 
   #------------------------------
 
@@ -45,7 +46,7 @@ exports.ThreadClient = class ThreadClient extends Base
   #------------------------------
 
   get_authenticate_klass : () -> AuthenticateClient
-  get_poster_klass : () -> MessagePoster
+  get_poster_klass : () -> PostMessageClient
 
   #------------------------------
 
@@ -78,10 +79,10 @@ exports.ThreadClient = class ThreadClient extends Base
   #------------------------------
 
   post_messge : ({msg, mime_type}, cb) ->
-    args = { from : @me, km : @thread_auth_km, @thread, msg, mime_type }
+    args = { @cfg, from : @me, km : @thread_auth_km, @thread, msg, mime_type }
     klass = @get_poster_klass()
     poster = new klass args
-    await poster.post defer err
+    await poster.post {}, defer err
     cb err
 
 #=============================================================================

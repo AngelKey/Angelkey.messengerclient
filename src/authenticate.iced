@@ -1,4 +1,3 @@
-
 {SessionClient} = require './session'
 {make_esc} = require 'iced-error'
 {Base} = require './base'
@@ -59,7 +58,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
   #---------
 
   encrypt : (cb) ->
-    esc = make_esc cb, "AuthorizeClient::encrypt"
+    esc = make_esc cb, "AuthenticateClient::encrypt"
     log.debug "+ encrypt"
     await @encrypt_priv esc defer()
     await @encrypt_pub esc defer()
@@ -71,7 +70,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
   # Encrypt the public temporary verification key with the current shared symmetric
   # session key
   encrypt_pub : (cb) ->
-    esc = make_esc cb, "AuthorizeClient::encrypt_pub"
+    esc = make_esc cb, "AuthenticateClient::encrypt_pub"
     log.debug "+ encrypt_pub"
     await @km.export_pgp_public {}, esc defer key
     buf = @cfg.encode_to_buffer { key, @sig }
@@ -84,7 +83,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
   # Encrypt the private temporary verification key with the user's long-lived
   # encryption key
   encrypt_priv : (cb) ->
-    esc = make_esc cb, "AuthorizeClient::encrypt_priv"
+    esc = make_esc cb, "AuthenticateClient::encrypt_priv"
     log.debug "+ encrypt_priv"
     await @km.export_pgp_private_to_client {}, esc defer tmpkey
     args = 
@@ -99,7 +98,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
   #---------
 
   generate : (cb) ->
-    esc = make_esc cb, "AuthorizeClient::generate_session_auth_key"
+    esc = make_esc cb, "AuthenticateClient::generate_session_auth_key"
     log.debug "+ generate"
     @expire_in = @cfg.session_auth_key_lifespan()
     args = 
@@ -118,7 +117,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
 
     log.debug "+ send"
     arg = 
-      endpoint : "thread/authorize"
+      endpoint : "thread/Authenticate"
       method : "POST"
       data:
         i : @thread.i
