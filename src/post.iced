@@ -8,7 +8,7 @@ kbmc = require 'keybase-messenger-core'
 {checkers} = require 'keybase-bjson-core'
 idg = kbmc.id.generators
 C = kbmc.const
-{detachsign,burn,KeyManager} = require 'kbpgp'
+{hash,detachsign,burn,KeyManager} = require 'kbpgp'
 {unix_time} = require('iced-utils').util
 {pack} = require 'purepack'
 util = require 'util'
@@ -172,9 +172,9 @@ exports.PostMessageClient = class PostMessageClient extends Base
     @chunk_zid = 0
     log.debug "+ post_body #{@msg_zid}"
     esc = make_esc cb, "post_body"
-    @hash_streamer = hashmod.streamers.SHA512()
+    @hash_streamer = hash.streamers.SHA512()
     while @streamer.data_left()
-      await @stream.read_n @CHUNKSZ, esc defer chunk
+      await @streamer.read @CHUNKSZ, esc defer chunk
       @hash_streamer.update chunk
       await @post_chunk chunk, esc defer()
     log.debug "- post_body"
