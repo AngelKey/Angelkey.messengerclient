@@ -78,7 +78,7 @@ exports.ThreadClient = class ThreadClient extends Base
 
   #------------------------------
 
-  post_messge : ({msg, mime_type}, cb) ->
+  post_message : ({msg, mime_type}, cb) ->
     args = { @cfg, from : @me, km : @thread_auth_km, @thread, msg, mime_type }
     klass = @get_poster_klass()
     poster = new klass args

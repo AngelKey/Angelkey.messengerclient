@@ -87,7 +87,7 @@ class Streamer
 
 exports.PostMessageClient = class PostMessageClient extends Base
 
-  @CHUNKSZ : 0x10000
+  @CHUNKSZ : 0x1000
   CHUNKSZ : PostMessageClient.CHUNKSZ
 
   #---------
@@ -115,7 +115,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
   #---------
 
   init_stream : (cb) -> 
-    @streamer = new Streamer { header, buffer : @msg, stream : @stream?.s }
+    @streamer = new Streamer { header, buf : @msg, stream : @stream?.s }
     @num_chunks = Math.ceil(@size / @CHUNKSZ)
     log.debug "| num_chunks is #{@num_chunks}"
     cb null
@@ -125,7 +125,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
   post_header : (cb) -> 
     log.debug "+ post_header"
     arg = 
-      endpoint : "thread/msg/header"
+      endpoint : "msg/header"
       method : "POST"
       data : 
         i : thread.i  # thread ID
@@ -143,15 +143,21 @@ exports.PostMessageClient = class PostMessageClient extends Base
   #---------
 
   post_chunk : (chunk, cb) ->
+
+    log.debug "| encrypting chunk #{@chunk_zid}"
+    await @thread.get_cipher().encrypt chunk, defer echunk
+
     arg = 
-      endpoint : "thread/msg/chunk"
+      endpoint : "msg/chunk"
       method : "POST"
       data : {
         i : @thread.i,
         t : @from.t,
-        @msg_zid, @chunk_zid
+        data : echunk,
+        @msg_zid, @chunk_zid,
       }
     log.debug "| post_chunk #{@chunk_zid}"
+
     await @request arg, defer err
     @chunk_zid++ unless err?
     cb err
