@@ -5,11 +5,13 @@
 {UserSet,Thread} = require './data'
 log = require 'iced-logger'
 kbmc = require 'keybase-messenger-core'
+{checkers} = require 'keybase-bjson-core'
 idg = kbmc.id.generators
 C = kbmc.const
 {detachsign,burn,KeyManager} = require 'kbpgp'
 {unix_time} = require('iced-utils').util
 {pack} = require 'purepack'
+util = require 'util'
 
 #=============================================================================
 
@@ -102,20 +104,20 @@ exports.PostMessageClient = class PostMessageClient extends Base
     body_size = 0
     if @msg? then    body_size += @msg.length
     if @stream? then body_size += @stream.size
-    @hdr = pack {
-      mime_type, body_size,
+    @header = pack {
+      @mime_type, body_size,
       time : unix_time(),
       prev : @thread.max_msg_zid
     }
-    @size = body_size + @hdr.size
-    log.debug "| header: #{@hdr}"
+    @size = body_size + @header.length
+    log.debug "| header: #{util.inspect @header}"
     log.debug "| body_size=#{body_size}; total size=#{@size}"
     cb null
 
   #---------
 
   init_stream : (cb) -> 
-    @streamer = new Streamer { header, buf : @msg, stream : @stream?.s }
+    @streamer = new Streamer { @header, buf : @msg, stream : @stream?.s }
     @num_chunks = Math.ceil(@size / @CHUNKSZ)
     log.debug "| num_chunks is #{@num_chunks}"
     cb null
@@ -128,15 +130,17 @@ exports.PostMessageClient = class PostMessageClient extends Base
       endpoint : "msg/header"
       method : "POST"
       data : 
-        i : thread.i  # thread ID
+        i : @thread.i  # thread ID
         t : @from.t   # write Token
         sender_zid : @from.zid
         etime : 0
         prev_msg_zid : @thread.max_msg_zid
         num_chunks : @num_chunks
-    await @request args, defer err, res, body
+      template :
+        msg_zid : checkers.nnint
+    await @request arg, defer err, res, json
     unless err?
-      @msg_zid = body.msg_zid
+      @msg_zid = json.body.msg_zid
     log.debug "- post_header"
     cb err
 
@@ -202,16 +206,15 @@ exports.PostMessageClient = class PostMessageClient extends Base
   #---------
 
   post : (arg, cb) ->
-    log.debug "+ PostMessageClient::authenticate"
-    esc = make_esc cb, "PostMessageClient::authenticate"
+    log.debug "+ PostMessageClient::post"
+    esc = make_esc cb, "PostMessageClient::post"
     await @format_header esc defer()
     await @init_stream esc defer()
-    await @chunkify esc defer()
     await @post_header esc defer()
     await @post_body esc defer()
     await @sign esc defer()
     await @post_sig esc defer()
-    log.debug "- PostMessageClient::authenticate"
+    log.debug "- PostMessageClient::post"
     cb null, @km
 
   #---------
