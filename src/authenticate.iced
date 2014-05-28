@@ -7,7 +7,8 @@ log = require 'iced-logger'
 kbmc = require 'keybase-messenger-core'
 idg = kbmc.id.generators
 C = kbmc.const
-{burn,KeyManager} = require 'kbpgp'
+kbpgp = require 'kbpgp'
+{burn,KeyManager} = kbpgp
 {unix_time} = require('iced-utils').util
 {pack} = require 'purepack'
 
@@ -101,6 +102,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
     esc = make_esc cb, "AuthenticateClient::generate_session_auth_key"
     log.debug "+ generate"
     @expire_in = @cfg.session_auth_key_lifespan()
+    KF = kbpgp.const.openpgp.key_flags
     args = 
       userid : new Buffer "#{@thread.i.toString('hex')}.#{@user.zid}"
       nbits : @cfg.session_auth_key_bits()

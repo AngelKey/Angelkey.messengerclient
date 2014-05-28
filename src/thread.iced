@@ -21,7 +21,6 @@ exports.ThreadClient = class ThreadClient extends Base
     super { cfg }
     @thread_auth_km = null
     @cipher = null
-    @max_msg_zid = 0 # the maximum msg zid we got on this thread
 
   #------------------------------
 
@@ -79,7 +78,7 @@ exports.ThreadClient = class ThreadClient extends Base
   #------------------------------
 
   post_message : ({msg, mime_type}, cb) ->
-    args = { @cfg, from : @me, km : @thread_auth_km, @thread, msg, mime_type }
+    args = { @cfg, from : @me, signing_km : @thread_auth_km, @thread, msg, mime_type }
     klass = @get_poster_klass()
     poster = new klass args
     await poster.post {}, defer err

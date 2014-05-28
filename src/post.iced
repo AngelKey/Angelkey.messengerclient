@@ -9,7 +9,7 @@ kbmc = require 'keybase-messenger-core'
 idg = kbmc.id.generators
 C = kbmc.const
 {hash,detachsign,burn,KeyManager} = require 'kbpgp'
-{unix_time} = require('iced-utils').util
+{bufferify,unix_time} = require('iced-utils').util
 {pack} = require 'purepack'
 util = require 'util'
 
@@ -25,7 +25,7 @@ class Streamer
     @_buf_total = 0
     if (@_stream = stream)?
       @_stream.on 'end',   () => @_eof = true
-      @_stream.on 'error', (e) => [ @_eof, @_error, @err] = [ true, true, e ]
+      @_stream.on 'error', (e) => [ @_eof, @_error, @_err] = [ true, true, e ]
       @_eof = @_error = false
     else
       @_eof = true
@@ -36,6 +36,7 @@ class Streamer
   #---------------
 
   push_prefix : (buf) ->
+    buf = bufferify buf
     @_bufs.push buf
     @_buf_total += buf.length
 
@@ -83,7 +84,7 @@ class Streamer
         bufs.push buf
         tot += buf.length
     ret = Buffer.concat bufs
-    cb err, ret, @is_eof()
+    cb @_err, ret, @is_eof()
 
 #=============================================================================
 
@@ -94,7 +95,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
 
   #---------
 
-  constructor : ( {cfg, @thread, @from, @km, @msg, @stream, @mime_type }) ->
+  constructor : ( {cfg, @thread, @from, @signing_km, @msg, @stream, @mime_type }) ->
     super { cfg }
     @mime_type or= "text/kstm"
 
@@ -135,6 +136,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
         sender_zid : @from.zid
         etime : 0
         prev_msg_zid : @thread.max_msg_zid
+        parent_msg_zid : 0  # for now, all 0
         num_chunks : @num_chunks
       template :
         msg_zid : checkers.nnint
@@ -157,8 +159,10 @@ exports.PostMessageClient = class PostMessageClient extends Base
       data : {
         i : @thread.i,
         t : @from.t,
+        sender_zid : @from.zid
         data : echunk,
-        @msg_zid, @chunk_zid,
+        @msg_zid, 
+        @chunk_zid
       }
     log.debug "| post_chunk #{@chunk_zid}"
 
@@ -182,7 +186,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
   #---------
 
   sign : (cb) ->
-    signing_key = @from.km.find_signing_pgp_key()
+    signing_key = @signing_km.find_signing_pgp_key()
     log.debug "| sign message"
     await detachsign { @hash_streamer, signing_key }, defer err, @sig
     cb err

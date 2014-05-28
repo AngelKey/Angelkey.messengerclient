@@ -141,6 +141,7 @@ exports.Thread = class Thread
     @cipher = null
     @i = null
     @_init_flag = false
+    @max_msg_zid = 0 # the maximum msg zid we got on this thread
 
   #---------------------
 
