@@ -117,7 +117,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
 
     log.debug "+ send"
     arg = 
-      endpoint : "thread/Authenticate"
+      endpoint : "thread/authenticate"
       method : "POST"
       data:
         i : @thread.i
