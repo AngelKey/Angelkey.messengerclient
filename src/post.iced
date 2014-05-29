@@ -200,7 +200,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
 
   post_sig : (cb) ->
     arg = 
-      endpoint : "thread/msg/sig"
+      endpoint : "msg/sig"
       method : "POST"
       data : {
         i : @thread.i
@@ -226,6 +226,23 @@ exports.PostMessageClient = class PostMessageClient extends Base
     log.debug "- PostMessageClient::post"
     cb null, @msg_zid
 
+  #---------
+
+  delete_msgs : ({msg_zid}, cb) ->
+    log.debug "+ PostMessageClient::delete_messages through #{msg_zid}"
+    args =
+      endpoint : "msg"
+      method : "DELETE"
+      data : {
+        i : @thread.i
+        t : @from.t
+        sender_zid : @from.zid
+        msg_zid 
+      }
+    await @request args, defer err
+    log.debug "- deleted -> #{err}"
+    cb err
+    
   #---------
 
 #=============================================================================

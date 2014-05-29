@@ -81,7 +81,13 @@ exports.ThreadClient = class ThreadClient extends Base
     args = { @cfg, from : @me, signing_km : @thread_auth_km, @thread, msg, mime_type }
     klass = @get_poster_klass()
     poster = new klass args
-    await poster.post {}, defer err
+    await poster.post {}, defer err, msg_zid
+    cb err, poster, msg_zid
+
+  #------------------------------
+
+  delete_messages : ({poster, msg_zid}, cb) ->
+    await @poster.delete_messages { msg_zid }, defer err
     cb err
 
 #=============================================================================
@@ -104,7 +110,8 @@ main = (cb) ->
   await cli.init_thread {}, esc defer()
   await cli.update_write_token { thread, user : chris }, esc defer()
   await cli.authenticate {}, esc defer()
-  await cli.post_message { msg }, esc defer()
+  await cli.post_message { msg }, esc defer poster, msg_zid
+  await cli.delete_messages { poster, msg_zid }, esc defer()
   cb null
 
 #=============================================================================
