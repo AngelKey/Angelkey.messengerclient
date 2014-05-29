@@ -6,11 +6,11 @@
 log = require 'iced-logger'
 kbmc = require 'keybase-messenger-core'
 {checkers} = require 'keybase-bjson-core'
-idg = kbmc.id.generators
 C = kbmc.const
+{Cipher} = kbmc
 {hash,detachsign,burn,KeyManager} = require 'kbpgp'
 {bufferify,unix_time} = require('iced-utils').util
-{pack} = require 'purepack'
+{frame} = require 'purepack'
 util = require 'util'
 
 #=============================================================================
@@ -105,15 +105,13 @@ exports.PostMessageClient = class PostMessageClient extends Base
     body_size = 0
     if @msg? then    body_size += @msg.length
     if @stream? then body_size += @stream.size
-    b2 = pack {
+
+    # Prepend the header length before the packed header, for ease of unpacking
+    @header = frame.pack {
       @mime_type, body_size,
       time : unix_time(),
       prev : @thread.max_msg_zid
     }
-    b1 = pack header.length
-
-    # Prepend the header length before the packed header, for ease of unpacking
-    @header = Buffer.concat [ b1, b2 ]
 
     @size = body_size + @header.length
     log.debug "| header: #{util.inspect @header}"
@@ -156,10 +154,10 @@ exports.PostMessageClient = class PostMessageClient extends Base
   post_chunk : (chunk, cb) ->
 
     log.debug "| encrypting chunk #{@chunk_zid}"
-    await @thread.get_cipher().encrypt chunk, defer echunk
+    await @thread.get_cipher().encrypt chunk, defer ctext
 
     # Sign after encryption
-    @hash_streamer.update echunk
+    @hash_streamer.update Cipher.encode_to_stream(ctext)
 
     arg = 
       endpoint : "msg/chunk"
@@ -167,8 +165,8 @@ exports.PostMessageClient = class PostMessageClient extends Base
       data : {
         i : @thread.i,
         t : @from.t,
-        sender_zid : @from.zid
-        data : echunk,
+        sender_zid : @from.zid,
+        ctext,
         @msg_zid, 
         @chunk_zid
       }
