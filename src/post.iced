@@ -105,11 +105,16 @@ exports.PostMessageClient = class PostMessageClient extends Base
     body_size = 0
     if @msg? then    body_size += @msg.length
     if @stream? then body_size += @stream.size
-    @header = pack {
+    b2 = pack {
       @mime_type, body_size,
       time : unix_time(),
       prev : @thread.max_msg_zid
     }
+    b1 = pack header.length
+
+    # Prepend the header length before the packed header, for ease of unpacking
+    @header = Buffer.concat [ b1, b2 ]
+
     @size = body_size + @header.length
     log.debug "| header: #{util.inspect @header}"
     log.debug "| body_size=#{body_size}; total size=#{@size}"
@@ -153,6 +158,9 @@ exports.PostMessageClient = class PostMessageClient extends Base
     log.debug "| encrypting chunk #{@chunk_zid}"
     await @thread.get_cipher().encrypt chunk, defer echunk
 
+    # Sign after encryption
+    @hash_streamer.update echunk
+
     arg = 
       endpoint : "msg/chunk"
       method : "POST"
@@ -179,7 +187,6 @@ exports.PostMessageClient = class PostMessageClient extends Base
     @hash_streamer = hash.streamers.SHA512()
     while @streamer.data_left()
       await @streamer.read @CHUNKSZ, esc defer chunk
-      @hash_streamer.update chunk
       await @post_chunk chunk, esc defer()
     log.debug "- post_body"
     cb null
