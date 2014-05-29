@@ -52,7 +52,7 @@ exports.AuthenticateClient = class AuthenticateClient extends Base
       fingerprint : @km.get_pgp_fingerprint()
       expires : unix_time() + @expire_in
     }
-    await burn { msg, signing_key : @privkeys.signing }, defer err, @sig
+    await burn { msg, signing_key : @privkeys.sign }, defer err, @sig
     log.debug "- sign"
     cb err
 

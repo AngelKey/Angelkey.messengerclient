@@ -9,7 +9,7 @@ kbmc = require 'keybase-messenger-core'
 C = kbmc.const
 {Cipher} = kbmc
 {hash,detachsign,burn,KeyManager} = require 'kbpgp'
-{bufferify,unix_time} = require('iced-utils').util
+{dict_merge,bufferify,unix_time} = require('iced-utils').util
 {frame} = require 'purepack'
 util = require 'util'
 
@@ -101,6 +101,15 @@ exports.PostMessageClient = class PostMessageClient extends Base
 
   #---------
 
+  base_data : () -> {
+    i : @thread.i  # thread ID
+    t : @from.t   # write Token
+    sender_zid : @from.zid
+    @msg_zid
+  }
+
+  #---------
+
   format_header : (cb) ->
     body_size = 0
     if @msg? then    body_size += @msg.length
@@ -133,14 +142,12 @@ exports.PostMessageClient = class PostMessageClient extends Base
     arg = 
       endpoint : "msg/header"
       method : "POST"
-      data : 
-        i : @thread.i  # thread ID
-        t : @from.t   # write Token
-        sender_zid : @from.zid
+      data : dict_merge @base_data(), {
         etime : 0
         prev_msg_zid : @thread.max_msg_zid
         parent_msg_zid : 0  # for now, all 0
         num_chunks : @num_chunks
+      }
       template :
         msg_zid : checkers.nnint
     await @request arg, defer err, res, json
@@ -162,12 +169,8 @@ exports.PostMessageClient = class PostMessageClient extends Base
     arg = 
       endpoint : "msg/chunk"
       method : "POST"
-      data : {
-        i : @thread.i,
-        t : @from.t,
-        sender_zid : @from.zid,
+      data : dict_merge @base_data(), {
         ctext,
-        @msg_zid, 
         @chunk_zid
       }
     log.debug "| post_chunk #{@chunk_zid}"
@@ -200,11 +203,9 @@ exports.PostMessageClient = class PostMessageClient extends Base
 
   post_sig : (cb) ->
     arg = 
-      endpoint : "thread/msg/sig"
+      endpoint : "msg/sig"
       method : "POST"
-      data : {
-        i : @thread.i
-        t : @from.t
+      data : dict_merge @base_data(), {
         @msg_zid,
         @sig
       }
