@@ -226,7 +226,7 @@ exports.PostMessageClient = class PostMessageClient extends Base
     await @sign esc defer()
     await @post_sig esc defer()
     log.debug "- PostMessageClient::post"
-    cb null, @km
+    cb null, @msg_zid
 
   #---------
 
