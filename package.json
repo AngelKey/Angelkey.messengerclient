@@ -7,7 +7,7 @@
     "iced-coffee-script": "^1.7.1-b",
     "iced-error": "0.0.8",
     "iced-utils": "^0.1.12",
-    "purepack": "~1.0.0",
+    "purepack": ">=1.0.1",
     "triplesec": "^3.0.12",
     "keybase-bjson-core": "0.0.3",
     "keybase-bjson-client": "0.0.3",
