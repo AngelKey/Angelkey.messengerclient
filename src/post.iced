@@ -225,8 +225,25 @@ exports.PostMessageClient = class PostMessageClient extends Base
     await @sign esc defer()
     await @post_sig esc defer()
     log.debug "- PostMessageClient::post"
-    cb null, @km
+    cb null, @msg_zid
 
+  #---------
+
+  delete_msgs : ({msg_zid}, cb) ->
+    log.debug "+ PostMessageClient::delete_messages through #{msg_zid}"
+    args =
+      endpoint : "msg"
+      method : "DELETE"
+      data : {
+        i : @thread.i
+        t : @from.t
+        sender_zid : @from.zid
+        msg_zid 
+      }
+    await @request args, defer err
+    log.debug "- deleted -> #{err}"
+    cb err
+    
   #---------
 
 #=============================================================================
